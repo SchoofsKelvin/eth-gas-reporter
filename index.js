@@ -80,11 +80,17 @@ function Gas(runner, options) {
       watch.beforeStartBlock = sync.blockNumber();
     }
     watch.data.resetAddressCache();
+    watch.data.rebaseGasUsed();
+    // watch.loggedTransactions.clear();
   });
 
   runner.on("hook end", hook => {
-    if (hook.title.includes("before each") && !config.provider) {
-      watch.itStartBlock = sync.blockNumber() + 1;
+    if (hook.title.includes("before each")) {
+      if (!config.provider) {
+        watch.itStartBlock = sync.blockNumber() + 1;
+      }
+      watch.data.rebaseGasUsed();
+      // watch.loggedTransactions.clear();
     }
   });
 
@@ -94,11 +100,7 @@ function Gas(runner, options) {
     let gasUsedString;
     let consumptionString;
     let timeSpentString = color(test.speed, "%dms");
-    let gasUsed;
-
-    if (!config.provider) {
-      gasUsed = watch.blocks();
-    }
+    let gasUsed = config.provider ? watch.data.getGasUsed() : watch.blocks();
 
     if (gasUsed) {
       gasUsedString = color("checkmark", "%d gas");
